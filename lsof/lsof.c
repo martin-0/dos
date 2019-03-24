@@ -19,7 +19,7 @@
  *
  *	DOS 2-		XXX: unknown ?
  *	DOS 3.x 	0x35
- *	DOS 4,x+	0x3B
+ *	DOS 4.x+	0x3B
  */
 
 struct sft_header {
@@ -62,12 +62,12 @@ int main(void) {
 		printf ("\nSFT @ %Fp, entries: %d\n", SFT,sfth.entries);
 
 		for (i= 0; i < sfth.entries; i++) {
+			hnd = *(int far*)(SFT+i*sftsz+0x6);
 
 			if (hnd == 0) {
 				printf ("%d : free\n",sum+i);
 			}
 			else {
-				hnd = *(int far*)(SFT+i*sftsz+0x6);
 				fname = (char far*)(SFT+i*sftsz+0x26);
 
 				// copy to local buf, fname is 8.3 format
@@ -87,7 +87,6 @@ int main(void) {
 	}
 
 	return 0;
-
 }
 
 char get_sftsize() {

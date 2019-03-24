@@ -5,7 +5,7 @@ SFT @ 00C9:00CC, entries: 5
 1 : CON         , ref: 17
 2 : PRN         , ref: 6
 3 : COM1        , ref: 2
-4 : LSOF    EXE , ref: 0
+4 : free
 
 SFT @ CB65:0000, entries: 25
 5 : free

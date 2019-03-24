@@ -32,7 +32,6 @@ char far* get_sft(void);
 char get_sftsize(void);
 
 int main(void) {
-
 	struct sft_header sfth;
 	char far *SFT;
 	char sftsz;
@@ -58,6 +57,7 @@ int main(void) {
 		sfth.ofst = *(int far*)SFT;
 		sfth.segm = *(int far*)(SFT+2);
 		sfth.entries = *(int far*)(SFT+4);
+		sum += sfth.entries;
 
 		printf ("\nSFT @ %Fp, entries: %d\n", SFT,sfth.entries);
 
@@ -82,10 +82,10 @@ int main(void) {
 		// last SFT
 		if (sfth.ofst == 0xffff ) break;
 
-		sum += sfth.entries;
 		SFT = (char far*)MK_FP(sfth.segm, sfth.ofst);
 	}
 
+	printf ("FILES=%d\n", sum);
 	return 0;
 }
 

@@ -1,36 +1,36 @@
 SFT entry size: 59
 
 SFT @ 00C9:00CC, entries: 5
-5 : AUX         , ref: 6
-6 : CON         , ref: 17
-7 : PRN         , ref: 6
-8 : COM1        , ref: 2
-9 : free
+0 : AUX         , ref: 6
+1 : CON         , ref: 17
+2 : PRN         , ref: 6
+3 : COM1        , ref: 2
+4 : free
 
 SFT @ CB65:0000, entries: 25
-30 : free
-31 : free
-32 : free
-33 : free
-34 : free
-35 : free
-36 : free
-37 : free
-38 : free
-39 : free
-40 : free
-41 : free
-42 : free
-43 : free
-44 : free
-45 : free
-46 : free
-47 : free
-48 : free
-49 : free
-50 : free
-51 : free
-52 : free
-53 : free
-54 : free
+5 : free
+6 : free
+7 : free
+8 : free
+9 : free
+10 : free
+11 : free
+12 : free
+13 : free
+14 : free
+15 : free
+16 : free
+17 : free
+18 : free
+19 : free
+20 : free
+21 : free
+22 : free
+23 : free
+24 : free
+25 : free
+26 : free
+27 : free
+28 : free
+29 : free
 FILES=30

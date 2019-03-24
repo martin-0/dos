@@ -57,7 +57,6 @@ int main(void) {
 		sfth.ofst = *(int far*)SFT;
 		sfth.segm = *(int far*)(SFT+2);
 		sfth.entries = *(int far*)(SFT+4);
-		sum += sfth.entries;
 
 		printf ("\nSFT @ %Fp, entries: %d\n", SFT,sfth.entries);
 
@@ -79,6 +78,8 @@ int main(void) {
 				printf("%d : %s , ref: %d\n", sum+i,buf,hnd);
 			}
 		}
+		sum += sfth.entries;
+
 		// last SFT
 		if (sfth.ofst == 0xffff ) break;
 
@@ -103,18 +104,15 @@ char get_sftsize() {
 		mov [size], -1
 		jmp end
 	}
-
 dos3:
 	asm {
 		mov [size], 0x35
 		jmp end
 	}
-
 dos4:
 	asm {
 		mov [size], 0x3b
 	}
-
 end:
 	return size;
 }

@@ -1,39 +1,17 @@
-DOS version: 7
-SFT entry size: 59
-file name offset: 38
 
+DOS version:	7
+in_vars:	00C9:0026
+SFT entry size:	59
+fname offset:	38
 
-SFT @ 00C9:00CC, entries: 5
-0 : AUX         , ref: 6
-1 : CON         , ref: 17
-2 : PRN         , ref: 6
-3 : COM1        , ref: 2
-4 : free
+ SFT @ 00C9:00CC, entries: 5
+ --------------------
+  0 : AUX          6
+  1 : CON          17
+  2 : PRN          6
+  3 : COM1         2
 
-SFT @ CB65:0000, entries: 25
-5 : free
-6 : free
-7 : free
-8 : free
-9 : free
-10 : free
-11 : free
-12 : free
-13 : free
-14 : free
-15 : free
-16 : free
-17 : free
-18 : free
-19 : free
-20 : free
-21 : free
-22 : free
-23 : free
-24 : free
-25 : free
-26 : free
-27 : free
-28 : free
-29 : free
+ SFT @ CB65:0000, entries: 25
+ --------------------
+
 FILES=30

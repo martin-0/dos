@@ -11,9 +11,8 @@
 
 #include <stdio.h>
 #include <conio.h>
-#include <dos.h>
-#include <mem.h>
 #include <string.h>
+#include <dos.h>
 
 /*
  * sft_size is not part of the SFT header; varies between DOS versions
@@ -50,7 +49,6 @@ int main(int argc, char** argv) {
 	unsigned int ref_count;
 	int i,j,sum,verbose;
 	char far *fname;
-	char buf[16];
 
 	get_sftvars(&fdx);
 	if (fdx.dosver < 2) {
@@ -86,13 +84,7 @@ int main(int argc, char** argv) {
 			}
 			else {
 				fname = (char far*)(SFT+i*fdx.entrysz+fdx.fname_offset);
-
-				// copy to local buf, fname is 8.3 format
-				memset(buf, 0, sizeof buf);
-				for (j = 0; j < 11; j++) {
-					buf[j] = fname[j];
-				}
-				printf("  %d : %s  %d\n", sum+i,buf,ref_count);
+				printf("  %d : %.11Fs  %d\n", sum+i,fname,ref_count);
 			}
 		}
 		sum += sfth.entries;

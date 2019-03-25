@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 			if (fdx.dosver == 2) ref_count &= 0xff;
 
 			if (ref_count == 0) {
-				if (verbose) printf ("%d : free\n",sum+i);
+				if (verbose) printf ("  %d : free\n",sum+i);
 			}
 			else {
 				fname = (char far*)(SFT+i*fdx.entrysz+fdx.fname_offset);

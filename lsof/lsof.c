@@ -1,7 +1,7 @@
 /*
- * Check what files are opened by current process.
- * There's not much use of this in DOS itself as there's
- * usually only one process running.
+ * Print currently used file descriptors and their names.
+ * Walk the System File Tables to extract the information.
+ *
  * This is just a POC for writting python wrapper for gdb to
  * read these structures during remote debugging.
  *
@@ -15,9 +15,9 @@
 #include <mem.h>
 
 /*
- * SFT size is not part of the header, it's internal to particular DOS version
+ * sft_size is not part of the SFT header; varies between DOS versions
  *
- *	DOS 2-		XXX: unknown ?
+ *	DOS 2.x		src: github.com/Microsoft/MS-DOS/blob/master/v2.0/source/DOSSYM.ASM:606
  *	DOS 3.x 	0x35
  *	DOS 4.x+	0x3B
  */
@@ -26,29 +26,39 @@ struct sft_header {
 	unsigned int ofst;
 	unsigned int segm;
 	unsigned int entries;
-} PACKED;
+};
+
+struct fcb_idx {
+	char dosver;
+	unsigned int entrysz;
+	char fname_offset;
+};
 
 char far* get_sft(void);
-char get_sftsize(void);
+
+void get_sftvars(struct fcb_idx* fdx);
+void print_header(struct fcb_idx* fdx);
+
 
 int main(void) {
 	struct sft_header sfth;
+	struct fcb_idx fdx;
 	char far *SFT;
-	char sftsz;
 
-	int i,j,sum,hnd;
+	unsigned int ref_count;
+	int i,j,sum;
 	char far *fname;
 	char buf[16];
 
 	clrscr();
 
-	// SFT entry size depends on DOS version
-	if ((sftsz = get_sftsize()) == -1) {
-		printf ("oops: unsupported DOS version.\n");
+	get_sftvars(&fdx);
+	if (fdx.dosver < 2) {
+		printf ("DOS version %d not supported\n", fdx.dosver);
 		return 1;
 	}
 
-	printf ("SFT entry size: %d\n", sftsz);
+	print_header(&fdx);
 
 	// get first SFT
 	SFT = get_sft();
@@ -61,13 +71,16 @@ int main(void) {
 		printf ("\nSFT @ %Fp, entries: %d\n", SFT,sfth.entries);
 
 		for (i= 0; i < sfth.entries; i++) {
-			hnd = *(int far*)(SFT+i*sftsz+0x6);
+			ref_count = *(int far*)(SFT+i*fdx.entrysz+0x6);
 
-			if (hnd == 0) {
+			// in DOS 2.x ref_count is char
+			if (fdx.dosver == 2) ref_count &= 0xff;
+
+			if (ref_count == 0) {
 				printf ("%d : free\n",sum+i);
 			}
 			else {
-				fname = (char far*)(SFT+i*sftsz+0x26);
+				fname = (char far*)(SFT+i*fdx.entrysz+fdx.fname_offset);
 
 				// copy to local buf, fname is 8.3 format
 				memset(buf, 0, sizeof buf);
@@ -75,7 +88,7 @@ int main(void) {
 					buf[j] = fname[j];
 				}
 
-				printf("%d : %s , ref: %d\n", sum+i,buf,hnd);
+				printf("%d : %s , ref: %d\n", sum+i,buf,ref_count);
 			}
 		}
 		sum += sfth.entries;
@@ -85,36 +98,55 @@ int main(void) {
 
 		SFT = (char far*)MK_FP(sfth.segm, sfth.ofst);
 	}
-
 	printf ("FILES=%d\n", sum);
 	return 0;
 }
 
-char get_sftsize() {
-	char size;
+void print_header(struct fcb_idx* fdx) {
+	printf ("DOS version: %d\nSFT entry size: %d\nfile name offset: %d\n\n",
+		fdx->dosver, fdx->entrysz, fdx->fname_offset);
+}
+
+void get_sftvars(struct fcb_idx* fdx) {
 	asm {
+		push bx
 		mov ah, 0x30
 		int 0x21
+
+		mov bx, [fdx]
+		mov byte [bx], al
+		mov byte [bx+3], 0x26		// only DOS v2 has offset 0x0a
 
 		cmp al, 4
 		jge dos4
 		cmp al, 3
 		je dos3
+		cmp al, 2
+		je dos2
 
-		mov [size], -1
+		mov [fdx], -1
+		jmp end
+	}
+
+dos2:
+	asm {
+		mov word [bx+1], 0x28
+		mov byte [bx+3], 0x0a
 		jmp end
 	}
 dos3:
 	asm {
-		mov [size], 0x35
+		mov word [bx+1], 0x35
 		jmp end
 	}
 dos4:
 	asm {
-		mov [size], 0x3b
+		mov word [bx+1], 0x3b
 	}
 end:
-	return size;
+	asm {
+		pop bx
+	}
 }
 
 char far* get_sft() {

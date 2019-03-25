@@ -1,4 +1,7 @@
+DOS version: 7
 SFT entry size: 59
+file name offset: 38
+
 
 SFT @ 00C9:00CC, entries: 5
 0 : AUX         , ref: 6

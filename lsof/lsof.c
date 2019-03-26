@@ -17,7 +17,7 @@
 /*
  * sft_size is not part of the SFT header; varies between DOS versions
  *
- *	DOS 2.x		src: github.com/Microsoft/MS-DOS/blob/master/v2.0/source/DOSSYM.ASM:606
+ *	DOS 2.x		src: https://github.com/Microsoft/MS-DOS/blob/master/v2.0/source/DOSSYM.ASM:606
  *	DOS 3.x 	0x35
  *	DOS 4.x+	0x3B
  */
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 	char far *invars;
 
 	unsigned int ref_count;
-	int i,j,sum,verbose;
+	int i,sum,verbose;
 	char far *fname;
 
 	get_sftvars(&fdx);

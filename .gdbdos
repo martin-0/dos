@@ -1,0 +1,26 @@
+#
+# Useful macros when debugging DOS programs in real mode
+#
+# (c) martin 2019
+#
+
+set architecture i8086
+set osabi none
+set tdesc filename  ~/gdbtarget_dos.xml
+
+define cspeek
+        x/xh ($cs*0x10)+$arg0
+end
+
+define dspeek
+        x/xh ($ds*0x10)+$arg0
+end
+
+define espeek
+        x/xh ($es*0x10)+$arg0
+end
+
+define hook-stop
+        i r $eax $ecx $edx $ebx $esp $ebp $esi $edi $eip $eflags $cs $ss $ds $es $fs $gs
+        x/23i $pc
+end

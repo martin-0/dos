@@ -5,48 +5,78 @@
 #include <mem.h>
 #include <dos.h>
 
-#define	VERSION	0.11
+#define	VERSION	0.12
 
 #define OFFSETOF(type,field)	((unsigned long) &(((type*)0)->field))
 
-// 0x42 is the max size of the structure
-struct drive_ext_t {
-	int struct_size;				// word
-	int flags;                 		// word
-	unsigned long int c;			// dword
-	unsigned long int h;   	        // dword
-	unsigned long int s;  	        // dword
-	unsigned long int lo_total_s;	// qword lo+hi
-	unsigned long int hi_total_s;
-	unsigned int bps;				// word
+// XXX: one standard says the size should not be more than 30
+// XXX: bufsize > 30 is adjusted back to 30/1Eh on return
+struct drive_buf_t {
+	int bufsize;
+	int flags;
 
-	char pad[40];
+	/* physical CHS (could be incorrect); use int 13h/AH=08 to get logical CHS */
+	unsigned long int c;				// one higher than max usable
+	unsigned long int h;				// one higher than max usable
+	unsigned long int s;
+	unsigned long int lo_total_s;
+	unsigned long int hi_total_s;
+	unsigned int bps;					// one higher than max usable
+	int far* edd_param;
+
+	char pad[32];
+};
+
+// standard fixed disk parameter table
+// res values could be used for translated table (cyl > 1024)
+// but still this applies only to drives 80h and 81h
+struct fdpt_t {
+	unsigned int phys_c;			// physical number of cylinders
+	unsigned char phys_h;			// physical number of heads
+	char res1[2];					// reserved
+	unsigned int precomp;			// precompensation (obsolete)
+	char res3;						// reserved
+	char dcb;						// drive control byte
+	int res4;						// reserved
+	char res5;						// reserved
+	int lz;							// landing zone (obsolete)
+	unsigned char spt;				// sectors per track
+	char res6;						// reserved
 };
 
 int bios_inst_check(unsigned char drive);
-int bios_drive_param(unsigned char drive, struct drive_ext_t* d);
-void dump_buffer(struct drive_ext_t* d);
+int bios_drive_param(unsigned char drive, struct drive_buf_t* d);
+void dump_buffer(struct drive_buf_t* d);
 
 int main() {
-	struct drive_ext_t d;
+	struct drive_buf_t dbuf;
 	unsigned long int total_from_chs;
 	int i;
+
+	struct fdpt_t far* f;
 
 	clrscr();
 
 	// let's try for 10 disks
 	for (i=0; i < 10; i++) {
 		if (! bios_inst_check(0x80+i)) {
-			memset(&d, 0, sizeof(d));
-			d.struct_size = 0x42;
+			memset(&dbuf, 0, sizeof(dbuf));
+			dbuf.bufsize = 0x42;
 
-			if (!bios_drive_param(0x80+i, &d)) {
+			if (!bios_drive_param(0x80+i, &dbuf)) {
 
-				total_from_chs = d.c*d.h*d.s*d.bps;
-				printf ("\nCHS: %ld/%ld/%ld, sector size: %d\n",
-					 d.c, d.h, d.s, d.bps);
+				total_from_chs = dbuf.c*dbuf.h*dbuf.s*dbuf.bps;
+				printf ("\nCHS: %ld/%ld/%ld, sector size: %d, size: %ld\n",
+					 dbuf.c, dbuf.h, dbuf.s, dbuf.bps, total_from_chs);
 
-				dump_buffer(&d);
+				dump_buffer(&dbuf);
+
+				printf ("flags: %x\n", dbuf.flags);
+
+				printf ("EDD param ptr far: %Fp\n", dbuf.edd_param);
+
+				printf ("dbuf: %p:%p\n", FP_SEG(&dbuf), FP_OFF(&dbuf));
+				getch();
 
 			}
 			printf ("\n");
@@ -58,7 +88,7 @@ int main() {
 	return 0;
 }
 
-int bios_drive_param(unsigned char drive, struct drive_ext_t* d) {
+int bios_drive_param(unsigned char drive, struct drive_buf_t* d) {
 	int i;
 
 	union REGS regs;
@@ -78,9 +108,10 @@ int bios_drive_param(unsigned char drive, struct drive_ext_t* d) {
 	return 0;
 }
 
-void dump_buffer(struct drive_ext_t* d) {
+void dump_buffer(struct drive_buf_t* d) {
 	int i;
-	printf ("\n");
+	printf ("\nstruct dump:\n");
+
 	for (i = 0 ; i < 0x42; i++) {
 		printf ("%.02x ", *( ((unsigned char*)d)+i));
 		if ( (i+1) % 16 == 0) { printf("\n"); }
@@ -128,6 +159,7 @@ int bios_inst_check(unsigned char drive) {
 			printf ("\tremovable drive controller functions (45h,46h,48h,49h,INT 15h/AH=52h)\n");
 		}
 
+		// if this is true then edd_param makes sense (except FFFF:FFFF)
 		if ((r.x.cx >> 2) & 1) {
 			printf ("\tenhanced disk drive (EDD) functions (48h,4Eh)\n");
 		}
@@ -135,6 +167,5 @@ int bios_inst_check(unsigned char drive) {
 	else {
 		printf ("drive not installed.\n");
 	}
-
 	return 0;
 }

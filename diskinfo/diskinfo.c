@@ -1,11 +1,13 @@
 /* martin (c) 2020 */
 
+/* WIP */
+
 #include <stdio.h>
 #include <conio.h>
 #include <mem.h>
 #include <dos.h>
 
-#define	VERSION	0.12
+#define	VERSION	0.121
 
 #define OFFSETOF(type,field)	((unsigned long) &(((type*)0)->field))
 
